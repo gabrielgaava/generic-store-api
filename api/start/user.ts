@@ -10,10 +10,12 @@ const path = 'users'
 
 /*  Public Routes */
 /**/ Route.get(`${path}/`, 'UsersController.index')
-/**/ Route.get(`${path}/:id`, 'UsersController.find')
 /**/ Route.post(`${path}/`, 'UsersController.create')
 /**/ Route.post(`${path}/auth`, 'UsersController.login')
 
 /* Protected Routes */
 /**/ Route.get('/me', 'UsersController.me').middleware('auth')
 /**/ Route.put(`${path}/:id`, 'UsersController.update').middleware('auth')
+
+/* Admin Only */
+/**/ Route.get(`${path}/:id`, 'UsersController.find').middleware('auth')

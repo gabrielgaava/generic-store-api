@@ -9,23 +9,34 @@ export default class UsersController {
   }
 
   public async create(ctx: HttpContextContract) {
+    const authUser = ctx.auth.user
     const user = ctx.request.body()
-    return await User.create(user)
+
+    if (authUser && authUser.isAdmin) {
+      // Allow create any kind of user
+      return await User.create(user)
+    } else {
+      // Can only create regular users (acconts)
+      user.isAdmin = false
+      return await User.create(user)
+    }
   }
 
   public async find(ctx: HttpContextContract) {
+    await ctx.bouncer.authorize('isAdmin')
     const { id } = ctx.request.params()
     return await User.find(id)
   }
 
-  public async update(ctx: HttpContextContract) {
-    const { id } = ctx.request.params()
+  public async update({ request, bouncer }: HttpContextContract) {
+    const { id } = request.params()
+
+    // Verify if the auth user is edditing its own data
+    await bouncer.authorize('isMySelf', id)
+
     const user = await User.findOrFail(id)
-    const userData = ctx.request.body()
-
-    const updatedUser = await user.merge(userData).save()
-
-    return updatedUser
+    const userData = request.body()
+    return await user.merge(userData).save()
   }
 
   public async login({ auth, request, response }: HttpContextContract) {
