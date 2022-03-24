@@ -1,8 +1,10 @@
 import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
+import Database from '@ioc:Adonis/Lucid/Database'
 import User from 'App/Models/User'
+import Hash from '@ioc:Adonis/Core/Hash'
 
 export default class UsersController {
-  public async index(ctx: HttpContextContract) {
+  public async index() {
     return User.all()
   }
 
@@ -24,5 +26,25 @@ export default class UsersController {
     const updatedUser = await user.merge(userData).save()
 
     return updatedUser
+  }
+
+  public async login({ auth, request, response }: HttpContextContract) {
+    const email = request.input('email')
+    const password = request.input('password')
+    const user = await User.findBy('email', email)
+
+    if (user && (await Hash.verify(user.password, password))) {
+      await Database.from('api_tokens').where('user_id', user.id).delete()
+      return await auth.use('api').generate(user)
+    }
+
+    return response.badRequest({
+      message: 'Invalid Credential',
+      code: 'INVALID_CREDENTIALS',
+    })
+  }
+
+  public async me({ auth }: HttpContextContract) {
+    return auth.user
   }
 }

@@ -2,10 +2,18 @@ import Route from '@ioc:Adonis/Core/Route'
 
 const path = 'users'
 
-// User Routes:
+/*
+|--------------------------------------------------------------------------
+| USERS Routes                              By: Gabriel Gava  (24/03/2022)
+|--------------------------------------------------------------------------
+*/
 
-// > List all database users
-Route.get(`${path}/`, 'UsersController.index')
-Route.get(`${path}/:id`, 'UsersController.find')
-Route.post(`${path}/`, 'UsersController.create')
-Route.put(`${path}/:id`, 'UsersController.update')
+/*  Public Routes */
+/**/ Route.get(`${path}/`, 'UsersController.index')
+/**/ Route.get(`${path}/:id`, 'UsersController.find')
+/**/ Route.post(`${path}/`, 'UsersController.create')
+/**/ Route.post(`${path}/auth`, 'UsersController.login')
+
+/* Protected Routes */
+/**/ Route.get('/me', 'UsersController.me').middleware('auth')
+/**/ Route.put(`${path}/:id`, 'UsersController.update').middleware('auth')

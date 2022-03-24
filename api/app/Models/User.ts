@@ -1,4 +1,5 @@
 import { v4 as uuidv4 } from 'uuid'
+import argon2 from 'phc-argon2'
 import { DateTime } from 'luxon'
 import { BaseModel, beforeCreate, column } from '@ioc:Adonis/Lucid/Orm'
 
@@ -27,6 +28,9 @@ export default class User extends BaseModel {
   @column()
   public birthdate: DateTime
 
+  @column({ serializeAs: null })
+  public isAdmin: boolean
+
   @column.dateTime({ autoCreate: true })
   public createdAt: DateTime
 
@@ -34,7 +38,8 @@ export default class User extends BaseModel {
   public updatedAt: DateTime
 
   @beforeCreate()
-  public static assignUuid(user: User) {
+  public static async assignUuid(user: User) {
     user.id = uuidv4()
+    user.password = await argon2.hash(user.password)
   }
 }
