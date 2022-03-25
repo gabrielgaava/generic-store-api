@@ -8,7 +8,7 @@ import Database from '@ioc:Adonis/Lucid/Database'
 */
 
 import Route from '@ioc:Adonis/Core/Route'
-import './user'
+import './routes/user'
 
 Route.get('/', async () => {
   const healthCheck = {
