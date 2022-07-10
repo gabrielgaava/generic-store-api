@@ -15,6 +15,7 @@ const path = 'users'
 /* Protected Routes */
 Route.group(() => {
   Route.get('/me', 'UsersController.me')
+  Route.post('/logout', 'UsersController.logout')
   Route.put(`${path}/:id`, 'UsersController.update')
 
   /* Admin Only */

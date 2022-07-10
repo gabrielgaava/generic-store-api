@@ -1,6 +1,8 @@
+import moment from 'moment'
 import { GuardsList } from '@ioc:Adonis/Addons/Auth'
 import { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 import { AuthenticationException } from '@adonisjs/auth/build/standalone'
+import TokenExpired from 'App/Exceptions/TokenExpiredException'
 
 /**
  * Auth middleware is meant to restrict un-authenticated access to a given route
@@ -36,12 +38,17 @@ export default class AuthMiddleware {
       guardLastAttempted = guard
 
       if (await auth.use(guard).check()) {
-        /**
-         * Instruct auth to use the given guard as the default guard for
-         * the rest of the request, since the user authenticated
-         * succeeded here
-         */
         auth.defaultGuard = guard
+
+        // Validate if the token is not expired
+        const { token } = auth.use(guard)
+        const isValidToken = moment(token?.expiresAt).isAfter(new Date())
+
+        if (!isValidToken) {
+          await auth.use(guard).revoke()
+          return false
+        }
+
         return true
       }
     }
@@ -53,14 +60,14 @@ export default class AuthMiddleware {
       'Unauthorized access',
       'E_UNAUTHORIZED_ACCESS',
       guardLastAttempted,
-      this.redirectTo,
+      this.redirectTo
     )
   }
 
   /**
    * Handle request
    */
-  public async handle (
+  public async handle(
     { auth }: HttpContextContract,
     next: () => Promise<void>,
     customGuards: (keyof GuardsList)[]

@@ -46,13 +46,22 @@ export default class UsersController {
 
     if (user && (await Hash.verify(user.password, password))) {
       await Database.from('api_tokens').where('user_id', user.id).delete()
-      return await auth.use('api').generate(user)
+      return await auth.use('api').generate(user, {
+        expiresIn: '1days',
+      })
     }
 
     return response.badRequest({
       message: 'Invalid Credential',
       code: 'INVALID_CREDENTIALS',
     })
+  }
+
+  public async logout({ auth }: HttpContextContract) {
+    await auth.use('api').revoke()
+    return {
+      revoked: true,
+    }
   }
 
   public async me({ auth }: HttpContextContract) {
